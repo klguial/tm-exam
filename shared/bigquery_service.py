@@ -1,6 +1,7 @@
 from google.cloud import bigquery
 from google.oauth2 import service_account
 import streamlit as st
+import pandas as pd
 
 class BigQueryClient:
 
@@ -89,6 +90,7 @@ class BigQueryClient:
         ORDER BY timestamp desc
         ;
         """
-        print(sql)
-        df = self.client.query(sql).to_dataframe()
+        query_job = self.client.query(sql)
+        rows = query_job.result()
+        df = pd.DataFrame([dict(row.items()) for row in rows])
         return df
