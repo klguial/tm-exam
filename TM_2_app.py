@@ -16,7 +16,7 @@ def load_users():
 
 
 @st.cache_data(show_spinner=False)
-def load_data(user):
+def load_data(table_id, user):
     dataset = bq_client.get_checkins_per_user(table_id, user)
     return dataset
 
@@ -31,19 +31,10 @@ def split_frame(input_df, rows):
 st.set_page_config(layout="centered")
 st.header("TM Daily Checkins")
 users_list = load_users()
-
-
 top_menu = st.columns(3)
 
 # TOP MENU
-with top_menu[0]:
-    user_select = st.selectbox(
-        "Select a user",
-        users_list
-    )
-    dataset = bq_client.get_checkins_per_user(table_id, user_select)
-    print(f'Selected user {user_select}.')
-
+dataset = load_data(table_id, users_list[0])
 with top_menu[1]:
     sort_field = st.selectbox("Sort By", options=dataset.columns)
 with top_menu[2]:
@@ -51,10 +42,18 @@ with top_menu[2]:
         "Direction", options=["⬆️", "⬇️"], horizontal=True
     )
 
-if sort_field and sort_direction:
-    dataset = dataset.sort_values(
-            by=sort_field, ascending=sort_direction == "⬆️", ignore_index=True
-        )
+with top_menu[0]:
+    user_select = st.selectbox(
+        "Select a user",
+        users_list
+    )
+    dataset = load_data(table_id, user_select)
+    print(f'Selected user {user_select}.')
+
+    if sort_field and sort_direction:
+        dataset = dataset.sort_values(
+                by=sort_field, ascending=sort_direction == "⬆️", ignore_index=True
+            )
 
 
 pagination = st.container()
